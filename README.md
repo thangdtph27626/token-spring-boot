@@ -198,10 +198,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAnyAuthority(ADMIN)
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated())
-//                .oauth2Login(withDefaults())
+                .oauth2Login(withDefaults())
                 .formLogin(withDefaults())
                 .logout(l -> l.logoutSuccessUrl("/").permitAll())
-//                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 //                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 //                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .authenticationProvider(authenticationProvider())
@@ -280,3 +280,42 @@ public class AuthResController {
 ```
 
 Endpoint này sẽ nhận username và password của người dùng từ request. Nếu username và password hợp lệ, endpoint sẽ trả về token JWT.
+
+## 6. Sử dụng token JWT
+
+Sau khi đã tạo token JWT, chúng ta có thể sử dụng token này để xác thực người dùng và cấp quyền truy cập vào các tài nguyên.
+
+Để xác thực người dùng, chúng ta có thể sử dụng filter JwtAuthenticationFilter để kiểm tra token JWT trong request.
+
+Để cấp quyền truy cập vào các tài nguyên, chúng ta có thể sử dụng annotation @PreAuthorize để kiểm tra quyền của người dùng.
+
+```
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @GetMapping("/")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+}
+```
+Endpoint này chỉ cho phép người dùng có vai trò ADMIN truy cập.
+
+## Kết luận
+
+Trong bài viết này, chúng ta đã tìm hiểu cách kết hợp token vào trong Spring Security để bảo mật cho project microservice.
+
+Với cách này, chúng ta có thể đảm bảo rằng chỉ những người dùng được xác thực mới có thể truy cập vào các tài nguyên.
+
+Dưới đây là một số lưu ý khi sử dụng token JWT:
+
+- Token JWT phải được mã hóa bằng thuật toán mạnh để tránh bị giả mạo.
+- Token JWT có thời hạn sử dụng để tránh bị sử dụng sau khi hết hạn.
+- Token JWT phải được lưu trữ an toàn để tránh bị đánh cắp.
+Hy vọng bài viết này sẽ giúp ích cho bạn.
